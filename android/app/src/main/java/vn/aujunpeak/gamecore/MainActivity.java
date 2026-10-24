@@ -3,8 +3,6 @@ package vn.aujunpeak.gamecore;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
@@ -32,15 +30,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class MainActivity extends Activity {
     private WebView webView;
+    private static volatile String lastOverlayError = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +105,7 @@ public class MainActivity extends Activity {
                 obj.put("permission", Settings.canDrawOverlays(MainActivity.this));
                 obj.put("active", OverlayService.isRunning);
                 obj.put("demo", false);
+                obj.put("lastError", !OverlayService.lastError.isEmpty() ? OverlayService.lastError : lastOverlayError);
             } catch (Exception ignored) { }
             return obj.toString();
         }
@@ -196,12 +194,16 @@ public class MainActivity extends Activity {
                     Intent intent = new Intent(MainActivity.this, OverlayService.class);
                     intent.setAction(OverlayService.ACTION_START);
                     intent.putExtra(OverlayService.EXTRA_CONFIG, config);
-                    startForegroundService(intent);
+                    lastOverlayError = "";
+                    OverlayService.lastError = "";
                     if (Build.VERSION.SDK_INT >= 33 &&
                         checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                         requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, 2026);
                     }
-                } catch (Exception ignored) { }
+                    startForegroundService(intent);
+                } catch (Exception error) {
+                    lastOverlayError = error.getClass().getSimpleName() + ": " + error.getMessage();
+                }
                 webView.postDelayed(MainActivity.this::refreshStatus, 450);
             });
         }
@@ -212,7 +214,8 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(MainActivity.this, OverlayService.class);
                 intent.setAction(OverlayService.ACTION_UPDATE);
                 intent.putExtra(OverlayService.EXTRA_CONFIG, config);
-                startService(intent);
+                try { startService(intent); }
+                catch (Exception error) { lastOverlayError = error.getMessage(); }
             });
         }
 
@@ -220,7 +223,11 @@ public class MainActivity extends Activity {
             runOnUiThread(() -> {
                 Intent intent = new Intent(MainActivity.this, OverlayService.class);
                 intent.setAction(OverlayService.ACTION_STOP);
-                startService(intent);
+                // Không khởi động service mới chỉ để dừng nếu nó không hoạt động.
+                if (OverlayService.isRunning) {
+                    try { startService(intent); }
+                    catch (Exception error) { lastOverlayError = error.getMessage(); }
+                }
                 webView.postDelayed(MainActivity.this::refreshStatus, 350);
             });
         }

@@ -1,4 +1,4 @@
-# AUJUNPEAK GameCore — React + Android Native
+# AUJUNPEAK GameCore v1.1 — React + Android Native
 
 Ứng dụng Android giao diện dọc, phong cách futuristic/cyberpunk, robot 3D WebGL, 5 mẫu tâm ảo, 6 màu, HUD nổi trên ứng dụng khác, game launcher và thông tin RAM/pin thực tế.
 
@@ -71,3 +71,16 @@ APK ở `android/app/build/outputs/apk/debug/app-debug.apk`.
 ## Lưu ý sử dụng
 
 Kiểm tra chính sách của từng trò chơi trước khi bật overlay. Nhiều game cho phép tâm hiển thị trung tính nhưng một số game chặn hoặc không cho phép lớp phủ dù không sửa dữ liệu của game.
+
+
+## v1.1 — kiểm tra build & lỗi GitHub Actions
+
+- Bản cũ báo lỗi trên màn hình Summary nhưng không thấy bước nào hỏng. Mở **Actions → run bị lỗi → Android Debug APK → bước đỏ** để đọc `Error:` / `FAILURE: Build failed` / `npm ERR!`.
+- Bản này chia các giai đoạn rõ ràng: Preflight source, Install React packages, Compile React, Android SDK, Gradle, Verify APK.
+- Nếu build thất bại sau khi checkout, mục Artifacts có thể có `GAMECORE-BUILD-ERROR-LOGS` gồm log npm/React/Gradle để kiểm tra; nếu thất bại ngay bước cài Actions thì xem trực tiếp log của bước đó.
+- Khi build thành công, tải `AUJUNPEAK-GameCore-debug-APK`; kèm SHA-256 của APK.
+- Source kiểm tra đủ Java, manifest, cấu trúc asset, quyền overlay, và báo lỗi native thay vì im lặng.
+
+**Quan trọng:** ảnh Summary ban đầu không chứa log chi tiết nên không thể chứng minh nguyên nhân duy nhất; đây là bản gia cố cấu hình và chức năng. Chỉ có lần chạy Actions trên GitHub mới xác nhận build Android hoàn tất. Nếu vẫn Failure, cung cấp nội dung log của bước đỏ và artifact `GAMECORE-BUILD-ERROR-LOGS`.
+
+**Cập nhật repo cũ:** giải nén ZIP và upload file/thư mục **bên trong** thư mục `Aujunpeak-GameCore-FIXED` vào **root** repository, chọn overwrite khi GitHub hỏi. Đặc biệt phải cập nhật `.github/workflows/android-apk.yml` và `scripts/check-project.py`.

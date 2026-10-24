@@ -22,6 +22,7 @@ public class OverlayService extends Service {
     public static final String ACTION_UPDATE = "vn.aujunpeak.gamecore.UPDATE";
     public static final String EXTRA_CONFIG = "config";
     public static volatile boolean isRunning = false;
+    public static volatile String lastError = "";
     private static final String CHANNEL_ID = "crosshair_overlay";
     private WindowManager windowManager;
     private WindowManager.LayoutParams params;
@@ -61,6 +62,8 @@ public class OverlayService extends Service {
             return START_NOT_STICKY;
         }
         if (!Settings.canDrawOverlays(this)) {
+            lastError = "Chưa cấp quyền hiển thị trên ứng dụng khác";
+            isRunning = false;
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -69,18 +72,23 @@ public class OverlayService extends Service {
             catch (Exception ignored) { config = new JSONObject(); }
         }
         if (ACTION_UPDATE.equals(action)) {
-            applyOverlay();
+            if (isRunning) applyOverlay();
             return START_NOT_STICKY;
         }
         try {
+            lastError = "";
             if (Build.VERSION.SDK_INT >= 34) {
                 startForeground(1451, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
             } else {
                 startForeground(1451, buildNotification());
             }
-            isRunning = true;
             applyOverlay();
+            isRunning = reticleView != null;
+            if (!isRunning) stopSelf();
         } catch (Exception error) {
+            lastError = error.getClass().getSimpleName() + ": " + error.getMessage();
+            android.util.Log.e("GameCoreOverlay", "Cannot start crosshair overlay", error);
+            isRunning = false;
             stopSelf();
         }
         return START_NOT_STICKY;
@@ -116,7 +124,11 @@ public class OverlayService extends Service {
             params.x = offsetX;
             params.y = offsetY;
             try { windowManager.addView(reticleView, params); }
-            catch (Exception error) { reticleView = null; stopSelf(); return; }
+            catch (Exception error) {
+                lastError = error.getClass().getSimpleName() + ": " + error.getMessage();
+                android.util.Log.e("GameCoreOverlay", "Cannot add overlay window", error);
+                reticleView = null; stopSelf(); return;
+            }
         } else {
             params.width = visualSize;
             params.height = visualSize;

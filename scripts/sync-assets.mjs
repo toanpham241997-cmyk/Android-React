@@ -10,4 +10,6 @@ if (!fs.existsSync(path.join(source, 'index.html'))) {
 }
 fs.rmSync(target, { recursive: true, force: true });
 fs.cpSync(source, target, { recursive: true });
+const index = fs.readFileSync(path.join(target, 'index.html'), 'utf8');
+if (!index.includes('assets/')) throw new Error('Vite assets did not compile correctly');
 console.log(`Android assets synced: ${target}`);

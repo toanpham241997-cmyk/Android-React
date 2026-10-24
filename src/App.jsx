@@ -91,7 +91,7 @@ export default function App() {
     setTimeout(() => {
       const result = native.status();
       setStatus(result);
-      popup(result.active ? 'Đã bật tâm ảo — hãy mở trò chơi.' : 'Không thể bật HUD. Hãy kiểm tra quyền và thông báo.');
+      popup(result.active ? 'Đã bật tâm ảo — hãy mở trò chơi.' : (result.lastError ? 'Lỗi Android: ' + result.lastError : 'Không thể bật HUD. Hãy kiểm tra quyền và thông báo.'));
     }, 750);
   };
   const disableOverlay = () => {
@@ -191,9 +191,9 @@ export default function App() {
         <SectionHead eyebrow="02 / GRAPHICS" title="Hiệu ứng giao diện"/>
         <div className="settings-panel"><SettingRow icon={Gauge} title="Chế độ nhẹ" desc="Giảm hiệu ứng robot 3D để tiết kiệm pin" right={<Switch value={lite} onChange={setLite}/>}/><SettingRow icon={Palette} title="Bộ màu HUD" desc="Tùy chỉnh tại mục Tâm ảo" right={<ChevronRight size={18}/>} onClick={() => setTab('crosshair')}/></div>
         <SectionHead eyebrow="03 / INFORMATION" title="Hệ thống"/>
-        <div className="device-details"><div><span>DEVICE</span><strong>{device.model || 'Không xác định'}</strong></div><div><span>ANDROID</span><strong>{device.androidVersion || '--'}</strong></div><div><span>BUILD</span><strong>1.0.0 / DEBUG</strong></div><div><span>OVERLAY ENGINE</span><strong>ANDROID NATIVE</strong></div></div>
+        <div className="device-details"><div><span>DEVICE</span><strong>{device.model || 'Không xác định'}</strong></div><div><span>ANDROID</span><strong>{device.androidVersion || '--'}</strong></div><div><span>BUILD</span><strong>1.1.0 / DEBUG</strong></div><div><span>OVERLAY ENGINE</span><strong>ANDROID NATIVE</strong></div></div>
         <div className="privacy-note"><ShieldCheck size={17}/><span>Ứng dụng không yêu cầu root và không tải dữ liệu trò chơi lên máy chủ.</span></div>
-        <div className="bottom-wordmark">AUJUNPEAK VN <span>✦</span> GAMECORE V1.0</div>
+        <div className="bottom-wordmark">AUJUNPEAK VN <span>✦</span> GAMECORE V1.1</div>
       </div>}
     </main>
 
